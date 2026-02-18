@@ -1,0 +1,39 @@
+# JetBrains/IntelliJ/IDEA project files
+.idea/
+*.iml
+# Explicitly ignore misc.xml if .idea/ is not fully ignored
+misc.xml
+
+# VSCode
+.vscode/
+
+# Python cache and build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.dist/
+build/
+dist/
+
+# Test/coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.env/
+.env.local
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Logs
+# *.log
+
+# Node/npm (if any)
+node_modules/
+
