@@ -37,3 +37,8 @@ Thumbs.db
 # Node/npm (if any)
 node_modules/
 
+# Test files
+test_*.py
+*_test.py
+tests/
+test/
