@@ -18,6 +18,24 @@ def read_from_db_node(state):
 
         print(f"DEBUG: Fetched {len(alerts)} alerts from database")
 
+        # ─── CRITICAL DEBUG: Log alert keys and source value ───
+        if alerts and len(alerts) > 0:
+            alert0 = alerts[0]
+            print(f"DEBUG [read_from_db] Alert[0] keys: {list(alert0.keys())}")
+            print(f"DEBUG [read_from_db] Alert[0] id: {alert0.get('id')}")
+            print(f"DEBUG [read_from_db] Alert[0] source: '{alert0.get('source', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] ticket_id: '{alert0.get('ticket_id', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] classification: '{alert0.get('classification', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] issue_type: '{alert0.get('issue_type', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] created_by: '{alert0.get('created_by', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] status: '{alert0.get('status', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] severity: '{alert0.get('severity', 'KEY_NOT_FOUND')}'")
+            print(f"DEBUG [read_from_db] Alert[0] ticket (first 150): '{str(alert0.get('ticket', ''))[:150]}'")
+            # Check if 'source' key truly exists vs missing
+            print(f"DEBUG [read_from_db] 'source' IN alert0.keys(): {'source' in alert0}")
+        else:
+            print(f"DEBUG [read_from_db] WARNING: No alerts returned for alert_id={alert_id}")
+
         # Check if resolution exists in DB for this alert
         db_resolution_id = None
         if alerts and len(alerts) > 0:
@@ -46,7 +64,7 @@ def read_from_db_node(state):
             print("DEBUG: Task_agent tracking already initialized")
 
         # Set workflow type
-        state["workflow_type"] = "application"
+        state["workflow_type"] = "k8s"
 
         # Capture execution summary with resolution ID if found
         base_msg = f"Retrieved {len(alerts)} alerts from database and initialized task_agent tracking"

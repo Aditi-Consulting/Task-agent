@@ -50,7 +50,7 @@ def capture_node_execution(state: Dict[str, Any], node_name: str, result: Any = 
             result_summary = f"{node_name} executed but no result available"
             error_message = None
 
-        # Extract root cause and evidence if available (especially for verify_with_splunk)
+        # Extract root cause and evidence if available
         root_cause = state.get("root_cause", "")
         evidence = state.get("evidence", "")
         verification_status = state.get("verification_status", "")
@@ -65,7 +65,7 @@ def capture_node_execution(state: Dict[str, Any], node_name: str, result: Any = 
             "full_result": _serialize_result(result) if result else None
         }
 
-        # Add root cause data if available (especially important for verify_with_splunk node)
+        # Add root cause data if available
         if root_cause:
             execution_record["root_cause"] = root_cause
         if evidence:
@@ -241,7 +241,7 @@ def finalize_workflow_and_send_email(state):
     execution_id = state.get("task_agent_execution_id")
     alert_id = state.get("task_agent_alert_id")
     execution_summary = state.get("execution_summary", [])
-    workflow_type = state.get("workflow_type", "application")
+    workflow_type = state.get("workflow_type", "k8s")
 
     print(f"DEBUG: Starting workflow finalization for {workflow_type} workflow...")
     print(f"DEBUG: execution_id={execution_id}, alert_id={alert_id}")
@@ -254,6 +254,7 @@ def finalize_workflow_and_send_email(state):
             "ticket": state.get("user_input", "Workflow issue detected"),
             "severity": state.get("llm_analysis", {}).get("severity", "medium"),
             "classification": state.get("llm_analysis", {}).get("issue_type", workflow_type),
+            "source": state.get("alerts", [{}])[0].get("source", "unknown") if state.get("alerts") else "unknown",
             "status": "in_progress"
         }
         state["alerts"] = [synthetic_alert]
@@ -307,44 +308,32 @@ def finalize_workflow_and_send_email(state):
         print("FATAL: Missing task_agent_alert_id after recovery attempt")
         return {**state, "error": "Cannot finalize: Missing alert_id after recovery"}
 
-    # Get additional context for different workflow types
-    if workflow_type == "k8s":
-        llm_analysis = state.get("llm_analysis", {})
-        additional_context = {
-            "namespace": state.get("namespace", "default"),
-            "service_name": state.get("service_name", ""),
-            "deployment_name": state.get("deployment_name", ""),
-            "root_cause": root_cause,        # ADD ROOT CAUSE
-            "evidence": evidence,            # ADD EVIDENCE
-            "verification_status": verification_status
-        }
-    else:
-        # Application workflow context with root cause
-        alerts = state.get("alerts", [])
-        processed = state.get("processed", [])
-        resolutions = state.get("resolutions", [])
+    # Get additional context for K8s workflow
+    llm_analysis = state.get("llm_analysis", {})
+    additional_context = {
+        "namespace": state.get("namespace", "default"),
+        "service_name": state.get("service_name", ""),
+        "deployment_name": state.get("deployment_name", ""),
+        "root_cause": root_cause,
+        "evidence": evidence,
+        "verification_status": verification_status,
+        "alert_count": len(state.get("alerts", [])),
+        "resolutions_found": len(state.get("resolutions", [])),
+        "resolutions_executed": len(state.get("executed", []))
+    }
 
-        llm_analysis = {}
+    if not llm_analysis:
+        alerts = state.get("alerts", [])
         if alerts and len(alerts) > 0:
             alert = alerts[0]
             llm_analysis = {
-                "issue_type": alert.get("classification", "application"),
+                "issue_type": alert.get("classification", "k8s"),
                 "severity": alert.get("severity", "medium"),
                 "verification_status": verification_status,
-                "root_cause": root_cause,       # ADD ROOT CAUSE TO LLM ANALYSIS
-                "evidence": evidence,           # ADD EVIDENCE TO LLM ANALYSIS
+                "root_cause": root_cause,
+                "evidence": evidence,
                 "llm_recommendation": llm_recommendation
             }
-
-        additional_context = {
-            "alert_count": len(alerts),
-            "resolutions_found": len(resolutions),
-            "resolutions_executed": len(state.get("executed", [])),
-            "root_cause": root_cause,           # ADD ROOT CAUSE
-            "evidence": evidence,               # ADD EVIDENCE
-            "verification_status": verification_status,
-            "verification_message": verification_message
-        }
 
     # Extract confidence_score from state or use default
     confidence_score = state.get("confidence_score")

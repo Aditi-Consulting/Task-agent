@@ -16,7 +16,6 @@ from app.tools.k8s_fix_service_port_tool import fix_service_port_tool
 from app.tools.k8s_restart_deployment_tool import restart_deployment_tool
 from app.tools.k8s_fetch_pod_logs_tool import get_pod_logs_tool
 from app.tools.k8s_Pods_port_check_tool import port_check_tool
-from app.tools.splunk_tool import splunk_search_tool
 from app.tools.send_mail_tool import send_mail_tool
 
 load_dotenv()
@@ -26,7 +25,6 @@ llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4o-mini", tempe
 
 # Register all tools
 tools = [
-    splunk_search_tool,
     send_mail_tool,
     fetch_services_tool,
     fetch_pods_tool,
@@ -40,7 +38,7 @@ tools = [
 ]
 
 # Define the prompt template correctly
-prompt_template_str = """You are an AI assistant helping with Kubernetes and infrastructure issues.
+prompt_template_str = """You are an AI assistant helping with Kubernetes infrastructure issues.
 You have access to the following tools:
 
 {tools}
@@ -153,7 +151,23 @@ def process_alert(alert_json):
 
 
 if __name__ == "__main__":
-    # Example alert
-    alert_json = {"subject": "High Severity Alert: Abnormal Incident Handling Activity Detected by Splunk", "query": "index=main ticket_id=32a6a83b", "alert": {"id": 17, "agent_name": "Application Agent", "classification": "Application", "confidence": 0.85, "created_by": "Splunk Monitoring", "inserted_at": "2025-10-14T11:38:11.620342", "issue_type": "workflow_issue", "processed_at": "2025-10-14T14:20:04", "reasoning": "The alert references Splunk detecting abnormal incident handling activity and high-severity logs related to system or workflow issues during root cause analysis. This suggests problems within application-level processes or monitoring workflows rather than hardware or database-specific issues. The focus on incident handling and logs aligns more with application monitoring.", "severity": "High", "status": "failed", "ticket": "Alert: Splunk detected abnormal incident handling activity \u2014 high-severity logs indicate potential system or workflow issue during root cause analysis.", "ticket_id": "32a6a83b"}, "resolution": {"id": 9, "issue_type": "workflow_issue", "description": "Alert: Splunk detected abnormal incident handling activity \u2014 high-severity logs indicate potential system or workflow issue during root cause analysis.", "action_type": "Verify_and_notify", "action_steps": {"steps": ["1. Check Splunk to verify if the abnormal incident handling activity persists. 2. Review related logs and confirm whether the issue is genuine or a false trigger. 3. Once verified, summarize the findings. 4. Send a confirmation email to the DevOps team with the verification details and resolution outcome."]}}, "action_required": "Verify_and_notify", "action_parameters": {}, "instruction": "Please respond in JSON: {\"status\": \"<resolved|failed>\", \"message\": \"<your answer>\"}"}  # Use your full alert dict here
+    # Example K8s alert
+    alert_json = {
+        "subject": "High Severity Alert: Pod CrashLoopBackOff in production namespace",
+        "alert": {
+            "id": 1,
+            "agent_name": "K8s Agent",
+            "classification": "Infrastructure",
+            "confidence": 0.92,
+            "created_by": "K8s Monitor",
+            "issue_type": "pod_crash",
+            "severity": "High",
+            "source": "kubernetes",
+            "status": "in_progress",
+            "ticket": "Pod my-app-xyz is in CrashLoopBackOff state in production namespace.",
+            "ticket_id": "k8s-001"
+        },
+        "instruction": 'Please respond in JSON: {"status": "<resolved|failed>", "message": "<your answer>"}'
+    }
     response = process_alert(alert_json)
     print(response)

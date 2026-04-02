@@ -11,9 +11,9 @@ app = Flask(__name__)
 
 @app.route('/trigger-agent', methods=['POST'])
 def handle_alert_workflow():
-    """Handle the main alert processing workflow"""
+    """Handle the main K8s alert processing workflow"""
     try:
-        print("🚀 Starting alert processing workflow...")
+        print("🚀 Starting K8s alert processing workflow...")
 
         # Extract alertId from request body
         request_data = request.get_json() or {}
@@ -26,15 +26,19 @@ def handle_alert_workflow():
             "executed": [],
             "resolutions": [],
             "generated": [],
-            "splunk_results": None,
             "verification_status": "",
             "verification_message": "",
-            "verification_data": [],
             "next": "",
+            "execution_summary": [],
+            "summary_id": None,
+            "root_cause": "",
+            "evidence": "",
+            "llm_recommendation": "",
+            "workflow_type": "k8s",
             "alert_id": alert_id
         }
 
-        print("📊 Processing through nodes: read_from_db → fetch_resolution → decision...")
+        print("📊 Processing through nodes: read_from_db → fetch_resolution → decision → execute...")
         result = workflow_app.invoke(initial_state)
 
         # Print workflow summary
@@ -45,7 +49,7 @@ def handle_alert_workflow():
 
         return result
     except Exception as e:
-        return f"Error processing alert workflow: {e}"
+        return f"Error processing K8s alert workflow: {e}"
 
 @app.route('/get-resolution/<int:resolution_id>', methods=['GET'])
 def get_resolution_by_id(resolution_id):

@@ -1,13 +1,13 @@
 AGENT_PROMPTS = {
-    "Application Agent": """
-You are the Application Agent. Given this ticket information, generate a remediation action.
+    "K8s Agent": """
+You are the K8s Agent. Given this ticket information, generate a remediation action for Kubernetes infrastructure issues.
 
 Ticket information:
 {ticket_json}
 
 Return ONLY valid JSON in this exact format:
 {
-    "action_type": "Specific action type (e.g., restart_pod, scale_deployment, update_config, verify_and_notify)",
+    "action_type": "Specific action type (e.g., restart_pod, scale_deployment, restart_deployment, fix_service_port, verify_and_notify)",
     "action_steps": {
         "steps": [
             "1. First step description",
@@ -43,18 +43,6 @@ For restart_pod:
     "confidence_score": 90
 }
 
-For verify_and_notify:
-{
-    "action_type": "verify_and_notify", 
-    "action_steps": {
-        "steps": [
-            "1. Search Splunk for the abnormal incident handling activity",
-            "2. If the issue is found, send a confirmation email to the DevOps team"
-        ]
-    },
-    "confidence_score": 80
-}
-
 For scale_deployment:
 {
     "action_type": "scale_deployment",
@@ -67,25 +55,34 @@ For scale_deployment:
     },
     "confidence_score": 85
 }
+
+For restart_deployment:
+{
+    "action_type": "restart_deployment",
+    "action_steps": {
+        "steps": [
+            "1. Identify the target deployment in the namespace",
+            "2. Trigger a rolling restart of the deployment",
+            "3. Monitor the rollout status until all pods are updated",
+            "4. Verify the deployment is healthy after restart"
+        ]
+    },
+    "confidence_score": 88
+}
+
+For fix_service_port:
+{
+    "action_type": "fix_service_port",
+    "action_steps": {
+        "steps": [
+            "1. Fetch the current service configuration and port mappings",
+            "2. Identify the incorrect port configuration",
+            "3. Update the service port to the correct value",
+            "4. Verify the service is accessible on the corrected port"
+        ]
+    },
+    "confidence_score": 92
+}
 """
 }
-LOG_SUMMARY_PROMPT = """
-You are a Splunk log analyst. Convert the raw JSON log event into a clean, structured JSON object suitable for dashboards.
 
-Rules:
-- Always return a valid JSON object.
-- Use the following keys: user, operation, service, env, status, error, severity, message.
-- Map existing fields in the log to these keys:
-  - user: the username, actor, or source of the event (if not present, null)
-  - operation: type of action performed (login, API call, metric update, alert, etc.)
-  - service: the application, microservice, or host generating the log
-  - env: environment (prod, dev, staging; if not present, null)
-  - status: success/failure/other. If the log mentions an error, mark as "failure"; otherwise "success".
-  - error: true/false. True if the log mentions an error on any parameter; otherwise false.
-  - severity: INFO, WARN, ERROR, HIGH, MEDIUM, LOW. If the log mentions an error, map severity as ERROR or HIGH.
-  - message: a short summary of the log event, include which parameter caused an error if any.
-- Do not include any other keys.
-
-Log event:
-{log}
-"""

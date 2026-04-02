@@ -1107,6 +1107,7 @@ def send_mail_node(state: K8sState) -> K8sState:
             llm_analysis = state.get("llm_analysis", {})
             state["alerts"] = [{
                 "ticket_id": f"k8s-{llm_analysis.get('issue_type', 'alert')}",
+                "source": "Kubernetes",
                 "severity": llm_analysis.get('severity', 'medium'),
                 "issue_type": llm_analysis.get('issue_type', 'general'),
                 "ticket": state.get("user_input", "K8s alert received"),
@@ -1150,6 +1151,7 @@ def workflow_finalization_node(state: K8sState) -> K8sState:
                 "ticket": state.get("user_input", "K8s issue detected"),
                 "severity": state.get("llm_analysis", {}).get("severity", "medium"),
                 "classification": state.get("llm_analysis", {}).get("issue_type", "k8s"),
+                "source": "Kubernetes",
                 "status": "in_progress",
                 "namespace": state.get("namespace", "default")
             }

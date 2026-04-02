@@ -19,6 +19,9 @@ def fetch_resolution_node(state):
                     "resolution_source": "database"
                 })
                 print(f"✅ Found existing resolution for {issue_type} in database")
+                print(f"DEBUG [fetch_resolution] resolution keys: {list(resolution.keys())}")
+                print(f"DEBUG [fetch_resolution] resolution action_type: '{resolution.get('action_type')}'")
+                print(f"DEBUG [fetch_resolution] resolution description (first 100): '{str(resolution.get('description', ''))[:100]}'")
             else:
                 # Mark alert as needs_generation and add to processed list
                 processed_alerts.append({

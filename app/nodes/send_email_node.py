@@ -21,6 +21,7 @@ def prepare_email_content(state):
     alert_data = alerts[0] if alerts else {}
 
     ticket_id = alert_data.get("ticket_id", "unknown")
+    source = alert_data.get("source", "unknown")
     severity = alert_data.get("severity", "unknown")
     issue_type = alert_data.get("issue_type", "unknown")
     ticket = alert_data.get("ticket", "No description")
@@ -48,6 +49,7 @@ def prepare_email_content(state):
 
     ALERT DETAILS:
     - Ticket ID: {ticket_id}
+    - Source: {source}
     - Severity: {severity}
     - Issue Type: {issue_type}
     - Description: {ticket}
@@ -82,9 +84,10 @@ def prepare_email_content(state):
 
     if "__error__" in email_content:
         # Fallback if LLM fails
-        subject = f"Alert Notification: {severity} Issue {ticket_id} - {verification_status}"
+        subject = f"Alert Notification: {severity} Issue {ticket_id} [{source}] - {verification_status}"
         body = f"""
         Alert Notification: {ticket_id}
+        Source: {source}
 
         Status: {verification_status}
         Details: {verification_message}

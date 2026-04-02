@@ -13,9 +13,9 @@ def handle_k8s_request(user_input: str):
         return f"Error processing K8s request: {e}"
 
 def handle_alert_workflow():
-    """Handle the main alert processing workflow"""
+    """Handle the main K8s alert processing workflow"""
     try:
-        print("🚀 Starting alert processing workflow...")
+        print("🚀 Starting K8s alert processing workflow...")
         app = build_graph().compile()
         initial_state = {
             "alerts": [],
@@ -23,21 +23,18 @@ def handle_alert_workflow():
             "executed": [],
             "resolutions": [],
             "generated": [],
-            "splunk_results": None,
             "verification_status": "",
             "verification_message": "",
-            "verification_data": [],
             "next": "",
-            "execution_summary": [],  # Initialize execution summary tracking
-            "summary_id": None,       # Will be set when alerts are loaded
-            # ADD ROOT CAUSE TRACKING FIELDS
-            "root_cause": "",         # Initialize root cause field
-            "evidence": "",           # Initialize evidence field
-            "llm_recommendation": "", # Initialize LLM recommendation field
-            "workflow_type": "application"  # Set workflow type
+            "execution_summary": [],
+            "summary_id": None,
+            "root_cause": "",
+            "evidence": "",
+            "llm_recommendation": "",
+            "workflow_type": "k8s"
         }
 
-        print("📊 Processing through nodes: read_from_db → fetch_resolution → decision...")
+        print("📊 Processing through nodes: read_from_db → fetch_resolution → decision → execute...")
         result = app.invoke(initial_state)
 
         # Print workflow summary
@@ -50,14 +47,14 @@ def handle_alert_workflow():
 
         return result
     except Exception as e:
-        return f"Error processing alert workflow: {e}"
+        return f"Error processing K8s alert workflow: {e}"
 
 def main():
     """Main application entry point"""
-    print("=== Application Task Agent ===")
+    print("=== K8s Task Agent ===")
     print("📋 Available Options:")
     print("1. 🔧 K8s Operations (Direct)")
-    print("2. 🚨 Alert Processing Workflow (Full Pipeline)")
+    print("2. 🚨 K8s Alert Processing Workflow (Full Pipeline)")
     print("3. 💬 Interactive K8s Mode")
     print("4. 📊 Test K8s Examples")
 
@@ -82,8 +79,8 @@ def main():
                 print(f"✅ Result: {result}")
 
         elif choice == '2':
-            # Full alert workflow - this is your main flow
-            print("\n🚨 Full Alert Processing Workflow")
+            # Full K8s alert workflow
+            print("\n🚨 Full K8s Alert Processing Workflow")
             print("Flow: read_alert_from_db → fetch_resolution → decide_next_node → execute")
             result = handle_alert_workflow()
             print(f"\n🏁 Final Result: {result}")

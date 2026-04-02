@@ -554,10 +554,10 @@ def get_task_agent_execution_summary(alert_id):
     return result
 
 
-def get_task_agent_execution_for_email(alert_id, workflow_type="application"):
+def get_task_agent_execution_for_email(alert_id, workflow_type="k8s"):
     """
     Get formatted task agent execution summary for email notifications.
-    Enhanced with workflow-specific formatting.
+    K8s workflow formatting.
 
     Args:
         alert_id: ID of the alert
@@ -575,26 +575,15 @@ def get_task_agent_execution_for_email(alert_id, workflow_type="application"):
     full_result = execution_data.get('task_agent_full_result', {})
     summary = full_result.get('task_agent_summary', {})
 
-    # Workflow-specific headers and formatting
-    if workflow_type == "k8s":
-        header = "=== Task Agent - Kubernetes Workflow Summary ==="
-        workflow_icon = "🚀"
-    elif workflow_type == "application":
-        header = "=== Task Agent - Application Workflow Summary ==="
-        workflow_icon = "📱"
-    elif workflow_type == "infrastructure":
-        header = "=== Task Agent - Infrastructure Workflow Summary ==="
-        workflow_icon = "🏗️"
-    else:
-        header = "=== Task Agent - Workflow Summary ==="
-        workflow_icon = "⚙️"
+    header = "=== Task Agent - K8s Workflow Summary ==="
+    workflow_icon = "🚀"
 
     summary_lines = [header]
     summary_lines.append("=" * len(header))
     summary_lines.append("")
 
     # Workflow overview
-    summary_lines.append(f"{workflow_icon} Workflow Type: {workflow_type.title()}")
+    summary_lines.append(f"{workflow_icon} Workflow Type: K8s")
     summary_lines.append(f"📊 Total Steps: {summary.get('total_steps', len(nodes))}")
     summary_lines.append(f"✅ Completed Steps: {summary.get('completed_steps', len([n for n in nodes if n.get('status') == 'success']))}")
     summary_lines.append(f"🎯 Final Status: {summary.get('workflow_status', 'unknown').upper()}")

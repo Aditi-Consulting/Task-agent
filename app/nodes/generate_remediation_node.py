@@ -38,7 +38,7 @@ def generate_remediation_node(state):
             print(f"Generating resolution for {ticket_data['issue_type']}")
 
             # Compose the prompt for the LLM
-            prompt = AGENT_PROMPTS["Application Agent"].replace("{", "{{").replace("}", "}}")
+            prompt = AGENT_PROMPTS["K8s Agent"].replace("{", "{{").replace("}", "}}")
             prompt = prompt.replace("{{ticket_json}}", "{ticket_json}")
             formatted_prompt = prompt.format(ticket_json=json.dumps(ticket_data, indent=2))
 
@@ -56,7 +56,8 @@ def generate_remediation_node(state):
             try:
                 tool_context = (
                     "Tooling Context: The platform provides automated tools for common K8s remediations including "
-                    "restart_pod, restart_deployment, scale_deployment, fix_service_port, fetch_* details and verification. "
+                    "restart_pod, restart_deployment, scale_deployment, fix_service_port, fetch_pods, fetch_services, "
+                    "fetch_deployments, get_pod_logs, port_check, and send_mail for notifications. "
                     "If the resolution's action_type maps to any of these deterministic tools and the input parameters are available, "
                     "it is more likely to succeed. Please factor this into your confidence estimate."
                 )
