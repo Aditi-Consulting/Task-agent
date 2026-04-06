@@ -1,8 +1,20 @@
 from flask import Flask, jsonify, request
 # from endpoints.cors import setup_cors
 from graph.graph_builder import build_graph
-from store.db import get_db_conn
+from store.db import get_db_conn, fetch_alerts_from_db
 import json
+import threading
+import time
+import os
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+)
+logger = logging.getLogger("application-task-agent")
+
+POLL_INTERVAL = int(os.environ.get("POLL_INTERVAL_SECONDS", "15"))
 
 app = Flask(__name__)
 
@@ -20,23 +32,7 @@ def handle_alert_workflow():
         alert_id = request_data.get('alertId')
 
         workflow_app = build_graph().compile()
-        initial_state = {
-            "alerts": [],
-            "processed": [],
-            "executed": [],
-            "resolutions": [],
-            "generated": [],
-            "verification_status": "",
-            "verification_message": "",
-            "next": "",
-            "execution_summary": [],
-            "summary_id": None,
-            "root_cause": "",
-            "evidence": "",
-            "llm_recommendation": "",
-            "workflow_type": "k8s",
-            "alert_id": alert_id
-        }
+        initial_state = _build_initial_state(alert_id)
 
         print("📊 Processing through nodes: read_from_db → fetch_resolution → decision → execute...")
         result = workflow_app.invoke(initial_state)
@@ -81,5 +77,48 @@ def get_resolution_by_id(resolution_id):
     except Exception as e:
         return jsonify({"success": False, "error": f"Error fetching resolution: {str(e)}"}), 500
 
+def _build_initial_state(alert_id):
+    return {
+        "alerts": [],
+        "processed": [],
+        "executed": [],
+        "resolutions": [],
+        "generated": [],
+        "verification_status": "",
+        "verification_message": "",
+        "next": "",
+        "execution_summary": [],
+        "summary_id": None,
+        "root_cause": "",
+        "evidence": "",
+        "llm_recommendation": "",
+        "workflow_type": "k8s",
+        "alert_id": alert_id,
+    }
+
+
+def poll_and_process():
+    """Background poller that picks up Kubernetes alerts with status IN_PROGRESS/FAILED."""
+    while True:
+        try:
+            alerts = fetch_alerts_from_db(limit=10)
+            if alerts:
+                logger.info("Poller found %d Kubernetes alert(s) to process", len(alerts))
+                for alert in alerts:
+                    try:
+                        workflow_app = build_graph().compile()
+                        workflow_app.invoke(_build_initial_state(alert["id"]))
+                        logger.info("Processed alert id=%s", alert["id"])
+                    except Exception as e:
+                        logger.error("Failed to process alert id=%s: %s", alert["id"], e)
+        except Exception as e:
+            logger.error("Poller error: %s", e)
+
+        time.sleep(POLL_INTERVAL)
+
+
 if __name__ == '__main__':
+    poller = threading.Thread(target=poll_and_process, daemon=True)
+    poller.start()
+    logger.info("Poller started — checking every %ds for Kubernetes alerts", POLL_INTERVAL)
     app.run(host='0.0.0.0', port=5001)

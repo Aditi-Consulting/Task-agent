@@ -108,15 +108,15 @@ def fetch_alerts_from_db(limit=1, alert_id=None):
         query = """
             SELECT * FROM alerts
             WHERE id = %s
-            AND classification IN ('Application','Infrastructure','Database')
-            AND UPPER(status) IN ('FAILED','IN_PROGRESS')
+            AND UPPER(source) = 'KUBERNETES'
+            AND UPPER(REPLACE(status, ' ', '_')) IN ('FAILED','IN_PROGRESS')
         """
         cursor.execute(query, (alert_id,))
     else:
         query = """
             SELECT * FROM alerts
-            WHERE classification IN ('Application','Infrastructure','Database')
-            AND UPPER(status) IN ('FAILED','IN_PROGRESS')
+            WHERE UPPER(source) = 'KUBERNETES'
+            AND UPPER(REPLACE(status, ' ', '_')) IN ('FAILED','IN_PROGRESS')
             LIMIT %s
         """
         cursor.execute(query, (limit,))
