@@ -8,6 +8,10 @@ OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL_CLASSIFY = "gpt-4o-mini"
 OPENAI_MODEL_AGENT = "gpt-4o-mini"
 
+# Azure OpenAI (optional — used if set, else falls back to standard OpenAI)
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+
 # MySQL
 # DB_HOST = os.getenv("MYSQL_HOST", "localhost")
 # DB_USER = os.getenv("MYSQL_USER", "root")
